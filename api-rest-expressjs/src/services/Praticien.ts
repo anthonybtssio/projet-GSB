@@ -1,8 +1,8 @@
-import { PraticienModel, IPraticienDocument } from '../models/Praticien';
-import { ICreatePraticien } from '../models/interface/IPraticien';
+import { PraticienModel, IPraticienDocument } from '../models/Praticiens';
+import { ICreatePraticien } from '../models/interfaces/IPraticien';
 /**
- * Service pour gérer la logique métier des praticiens
- */
+ * Service pour gérer la logique métier des praticiens
+ */
 export class PraticienService {
   /**
    * Créer un nouvel praticien
@@ -30,15 +30,24 @@ export class PraticienService {
   }
 
   /**Supprimer un praticien */
-
-    public async deletePraticien(id: string): Promise<IPraticienDocument | null>{
+  public async deletePraticien(id: string): Promise<IPraticienDocument | null>{
 
         try{
-            const praticien = await PraticienModel.findByIdAndDelete()
+            const praticien = await PraticienModel.findByIdAndDelete(id).exec(); // <-- CORRECTION: Ajout de (id).exec()
+            
+            if (!praticien) {
+                throw new Error(`Praticien avec l'ID ${id} introuvable pour la suppression`);
+            }
+            return praticien;
+        } catch (error: any) { // <-- CORRECTION: Ajout du bloc catch
+            if (error.name === 'CastError') {
+                throw new Error(`ID invalide: ${id}`);
+            }
+            throw error;
+        }
 
-        }
-
-    }
+  } // <-- Le "}" est maintenant à la bonne place
+  
   /**
    * Récupérer tous les praticiens
    */

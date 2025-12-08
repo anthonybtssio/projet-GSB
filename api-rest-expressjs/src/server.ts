@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { Database } from './config/database';
 import { VisiteurRoutes } from './routes/Visiteur';
 import { MotifRoutes } from './routes/Motif';
-import { PraticienRoutes } from './routes/Praticiens';
+import { PraticienRoutes } from './routes/Praticien'; // Assurez-vous que le nom du fichier de route est correct
 
 // Chargement des variables d'environnement
 dotenv.config();
@@ -69,16 +69,15 @@ class App {
     const visiteursRoutes = new VisiteurRoutes();
     this.app.use('/api/visiteurs', visiteursRoutes.router);
 
-    // --- AJOUT ICI : Routes motifs ---
+    // Routes motifs
     const motifRoutes = new MotifRoutes();
     this.app.use('/api/motifs', motifRoutes.router);
-  }
 
-
-   //Routes praticiens
-const praticienRoutes = new PraticienRoutes();
+    // Routes praticiens (CORRIGÉ : Ces lignes sont maintenant DANS initializeRoutes)
+    const praticienRoutes = new PraticienRoutes();
     this.app.use('/api/praticiens', praticienRoutes.router);
   }
+  
   /**
    * Initialise la connexion à la base de données
    */

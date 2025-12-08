@@ -1,4 +1,5 @@
-import mongoose, { Schema, Model, Document } from 'mongoose';
+// anthonybtssio/projet-gsb/projet-GSB-32f54fcdedb92e9201a1b0fa5693f1ed15252035/api-rest-expressjs/src/models/Visiteur.ts
+import mongoose, { Schema, Model, Document, Types } from 'mongoose'; // <-- AJOUT de Types
 import { IVisiteur } from './interface/IVisiteur';
 
 
@@ -33,7 +34,15 @@ const visiteurSchema = new Schema<IVisiteurDocument>(
     dateCreation: {
       type: Date,
       default: Date.now
-    }
+    },
+    // --- DÉBUT AJOUT ---
+    portefeuillePraticiens: [ // Tableau de références
+      {
+        type: Types.ObjectId,
+        ref: 'Praticien', // Référence au modèle 'Praticien'
+      },
+    ],
+    // --- FIN AJOUT ---
   },
   {
     versionKey: false

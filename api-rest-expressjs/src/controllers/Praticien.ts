@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 // L'import du service est mis à jour (doit exister sous ce nom)
 import { PraticienService } from '../services/Praticien'; 
+import { request } from 'http';
 
 
 export class PraticienController {
@@ -16,7 +17,8 @@ export class PraticienController {
   /**
    * POST /api/praticiens - Créer un praticien
    */
-  public createPraticien = async (req: Request, res: Response): Promise<void> => {
+  public createPraticien = async (req: Request, res: Response): Promise<void> => { 
+    console.log(req.body)
     try {
       // Appelle la méthode createPraticien du service
       const praticien = await this.praticienService.createPraticien(req.body); 

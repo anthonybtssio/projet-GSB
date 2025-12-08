@@ -1,5 +1,5 @@
+// anthonybtssio/projet-gsb/projet-GSB-32f54fcdedb92e9201a1b0fa5693f1ed15252035/api-rest-expressjs/src/routes/Visiteur.ts
 import { Router } from 'express';
-// L'import du contrôleur est mis à jour
 import { VisiteurController } from '../controllers/Visiteur'; 
 
 
@@ -8,23 +8,38 @@ import { VisiteurController } from '../controllers/Visiteur';
  */
 export class VisiteurRoutes {
   public router: Router;
-  private visiteurController: VisiteurController; // La propriété est mise à jour
+  private visiteurController: VisiteurController;
 
 
   constructor() {
     this.router = Router();
-    // Le contrôleur est instancié avec le nouveau nom
     this.visiteurController = new VisiteurController(); 
     this.initializeRoutes();
   }
 
 
   private initializeRoutes(): void {
-    // POST /api/visiteurs - Créer un visiteur
+    // Routes existantes pour les visiteurs
     this.router.post('/', this.visiteurController.createVisiteur);
-    // GET /api/visiteurs - Récupérer tous les visiteurs
     this.router.get('/', this.visiteurController.getAllVisiteurs);
-    // GET /api/visiteurs/:id - Récupérer un visiteur par ID
     this.router.get('/:id', this.visiteurController.getVisiteurById);
+    
+    // ----------------------------------------------------------------------------------
+    // --- NOUVELLE ROUTE (US 1 : Ajouter un praticien) ---
+    // Correspond à : POST /api/visiteurs/portefeuille/:visiteurId
+    // ----------------------------------------------------------------------------------
+    this.router.post(
+      '/portefeuille/:visiteurId',
+      this.visiteurController.ajouterPraticien
+    );
+    
+    // ----------------------------------------------------------------------------------
+    // --- NOUVELLE ROUTE (US 2 : Visualiser le portefeuille) ---
+    // Correspond à : GET /api/visiteurs/portefeuille/:visiteurId
+    // ----------------------------------------------------------------------------------
+    this.router.get(
+      '/portefeuille/:visiteurId',
+      this.visiteurController.getPortefeuille
+    );
   }
 }
