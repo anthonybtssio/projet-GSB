@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { Database } from './config/database';
 import { VisiteurRoutes } from './routes/Visiteur';
 import { MotifRoutes } from './routes/Motif';
-import { PraticienRoutes } from './routes/Praticiens';
+import { PraticienRoutes } from './routes/Praticien'; // Attention : Vérifie que le fichier s'appelle bien Praticien.ts (singulier) ou Praticiens.ts (pluriel)
 
 // Chargement des variables d'environnement
 dotenv.config();
@@ -31,13 +31,8 @@ class App {
    * Configure les middlewares Express
    */
   private initializeMiddlewares(): void {
-    // Parse le JSON dans les requêtes
     this.app.use(express.json());
-    
-    // Parse les données URL-encoded
     this.app.use(express.urlencoded({ extended: true }));
-    
-    // Active CORS pour toutes les origines
     this.app.use(cors());
   }
 
@@ -56,7 +51,7 @@ class App {
       });
     });
 
-    // Route de santé pour vérifier que l'API fonctionne
+    // Route de santé
     this.app.get('/health', (req: Request, res: Response) => {
       res.json({
         status: 'OK',
@@ -65,20 +60,22 @@ class App {
       });
     });
 
-    //Routes visiteurs
+    // --- Routes Métiers ---
+
+    // Routes visiteurs (inclut maintenant le portefeuille)
     const visiteursRoutes = new VisiteurRoutes();
     this.app.use('/api/visiteurs', visiteursRoutes.router);
 
-    // --- AJOUT ICI : Routes motifs ---
+    // Routes motifs
     const motifRoutes = new MotifRoutes();
     this.app.use('/api/motifs', motifRoutes.router);
-  }
 
-
-   //Routes praticiens
-const praticienRoutes = new PraticienRoutes();
+    // Routes praticiens
+    // CORRECTION ICI : Ce bloc doit être DANS la méthode, pas après l'accolade fermante
+    const praticienRoutes = new PraticienRoutes();
     this.app.use('/api/praticiens', praticienRoutes.router);
   }
+
   /**
    * Initialise la connexion à la base de données
    */
