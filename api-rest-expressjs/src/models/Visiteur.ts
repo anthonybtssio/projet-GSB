@@ -1,44 +1,27 @@
 import mongoose, { Schema, Model, Document } from 'mongoose';
-import { IVisiteur } from './interface/IVisiteur';
-
+import { IVisiteur } from './interfaces/IVisiteur'; // Vérifiez le 's' à interfaces
 
 export type IVisiteurDocument = IVisiteur & Document;
+
 /**
  * Schéma Mongoose pour Visiteur
  */
 const visiteurSchema = new Schema<IVisiteurDocument>(
-  {
-    nom: {
-      type: String,
-      required: [true, 'Le nom est obligatoire'],
-      trim: true,
-      minlength: [2, 'Le nom doit contenir au moins 2 caractères'],
-      maxlength: [50, 'Le nom ne peut pas dépasser 50 caractères']
-    },
-    prenom: {
-      type: String,
-      required: [true, 'Le prénom est obligatoire'],
-      trim: true,
-      minlength: [2, 'Le prénom doit contenir au moins 2 caractères'],
-      maxlength: [50, 'Le prénom ne peut pas dépasser 50 caractères']
-    },
-    email: {
-      type: String,
-      required: [true, "L'email est obligatoire"],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Email invalide']
-    },
-    dateCreation: {
-      type: Date,
-      default: Date.now
-    }
-  },
-  {
-    versionKey: false
-  }
+  {
+    nom: { type: String, required: [true, 'Le nom est obligatoire'], trim: true },
+    prenom: { type: String, required: [true, 'Le prénom est obligatoire'], trim: true },
+    email: { type: String, required: [true, "L'email est obligatoire"], unique: true, lowercase: true },
+    dateCreation: { type: Date, default: Date.now },
+    // Champ pour le portefeuille global
+    portefeuillePraticiens: [{ type: Schema.Types.ObjectId, ref: 'Praticien' }],
+    // Champ pour les suivis avec dates
+    praticiensSuivis: [{
+      praticienId: { type: Schema.Types.ObjectId, ref: 'Praticien' },
+      dateDebut: { type: Date, default: Date.now },
+      dateFin: { type: Date } 
+    }]
+  },
+  { versionKey: false }
 );
-
 
 export const VisiteurModel: Model<IVisiteurDocument> = mongoose.model<IVisiteurDocument>('Visiteur', visiteurSchema);

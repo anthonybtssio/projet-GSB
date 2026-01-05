@@ -13,7 +13,19 @@ export class PortefeuilleService {
   // Récupérer les praticiens d'un visiteur
   public async getPraticiensByVisiteurId(visiteurId: string): Promise<IPortefeuilleDocument[]> {
     return await PortefeuilleModel.find({ visiteur: visiteurId })
-      .populate('praticien') // Pour récupérer les détails (nom, prenom...) du praticien
+      .populate('praticien')
       .exec();
+  }
+
+  /**
+   * SUPPRIMER UN LIEN PRÉCIS
+   * Retire le lien entre un visiteur et UN praticien spécifique
+   */
+  public async retirerPraticien(visiteurId: string, praticienId: string): Promise<IPortefeuilleDocument | null> {
+    // On cherche l'entrée qui contient à la fois cet ID visiteur ET cet ID praticien
+    return await PortefeuilleModel.findOneAndDelete({ 
+      visiteur: visiteurId, 
+      praticien: praticienId 
+    }).exec();
   }
 }

@@ -1,25 +1,20 @@
-// Assurez-vous que ces fichiers existent et utilisent le terme Visiteur
 import { VisiteurModel, IVisiteurDocument } from '../models/Visiteur'; 
 import { ICreateVisiteur } from '../models/interfaces/IVisiteur'; 
-
 
 /**
  * Service pour gérer la logique métier des Visiteurs
  */
-export class VisiteurService { // Renommage de la classe
+export class VisiteurService {
 
     /**
      * Créer un nouveau visiteur
      */
     public async createVisiteur(visiteurData: ICreateVisiteur): Promise<IVisiteurDocument> {
         try {
-            // Vérifier si l'email existe déjà
             const existingVisiteur = await VisiteurModel.findOne({ email: visiteurData.email });
-            
             if (existingVisiteur) {
                 throw new Error(`Un visiteur avec l'email ${visiteurData.email} existe déjà`);
             }
-            // Créer et sauvegarder le visiteur
             const visiteur = new VisiteurModel(visiteurData);
             await visiteur.save();
             return visiteur;
@@ -33,21 +28,68 @@ export class VisiteurService { // Renommage de la classe
     }
 
     /**
-     * Supprimer un visiteur par son ID
+     * Action : ARRETER LE SUIVI (Réponse à votre story)
+     * Cherche le suivi actif (sans dateFin) et définit la date de fin.
      */
-    public async deleteVisiteur(id: string): Promise<IVisiteurDocument | null> {
+    public async arreterSuivis(visiteurId: string, praticienId: string): Promise<IVisiteurDocument | null> {
         try {
-            const visiteur = await VisiteurModel.findByIdAndDelete(id);
+            const visiteur = await VisiteurModel.findOneAndUpdate(
+                { 
+                    _id: visiteurId, 
+                    "praticiensSuivis.praticienId": praticienId,
+                    "praticiensSuivis.dateFin": { $exists: false } // On cible le suivi en cours
+                },
+                { 
+                    $set: { "praticiensSuivis.$.dateFin": new Date() } // Met à jour la date de fin
+                },
+                { new: true }
+            ).populate('praticiensSuivis.praticienId');
 
             if (!visiteur) {
-                throw new Error(`Visiteur avec l'ID ${id} introuvable pour la suppression`);
+                throw new Error(`Aucun suivi actif trouvé pour le praticien ${praticienId}`);
             }
             return visiteur;
-
         } catch (error: any) {
-            if (error.name === 'CastError') {
-                throw new Error(`ID invalide: ${id}`);
-            }
+            if (error.name === 'CastError') throw new Error(`ID invalide`);
+            throw error;
+        }
+    }
+
+    /**
+     * Action : SUPPRIMER DU PORTEFEUILLE
+     * Retire totalement le praticien du secteur du visiteur.
+     */
+    public async supprimerDuPortefeuille(visiteurId: string, praticienId: string): Promise<IVisiteurDocument | null> {
+        try {
+            const visiteur = await VisiteurModel.findByIdAndUpdate(
+                visiteurId,
+                { $pull: { portefeuillePraticiens: praticienId } }, // Retire de la liste globale
+                { new: true }
+            );
+
+            if (!visiteur) throw new Error(`Visiteur introuvable`);
+            return visiteur;
+        } catch (error: any) {
+            throw error;
+        }
+    }
+
+    /**
+     * Ajouter un praticien au portefeuille et démarrer un suivi (FOLLOW)
+     */
+    public async followPraticien(visiteurId: string, praticienId: string): Promise<IVisiteurDocument | null> {
+        try {
+            const visiteur = await VisiteurModel.findByIdAndUpdate(
+                visiteurId,
+                { 
+                    $addToSet: { portefeuillePraticiens: praticienId }, // Ajoute au portefeuille global
+                    $push: { praticiensSuivis: { praticienId: praticienId, dateDebut: new Date() } } // Nouveau suivi
+                },
+                { new: true }
+            ).populate('praticiensSuivis.praticienId');
+
+            return visiteur;
+        } catch (error: any) {
             throw error;
         }
     }
@@ -57,10 +99,7 @@ export class VisiteurService { // Renommage de la classe
      */
     public async getAllVisiteurs(): Promise<IVisiteurDocument[]> {
         try {
-            const visiteurs = await VisiteurModel.find()
-                .sort({ dateCreation: -1 })
-                .exec();
-            return visiteurs;
+            return await VisiteurModel.find().sort({ dateCreation: -1 }).exec();
         } catch (error) {
             throw new Error('Erreur lors de la récupération des visiteurs');
         }
@@ -71,16 +110,25 @@ export class VisiteurService { // Renommage de la classe
      */
     public async getVisiteurById(id: string): Promise<IVisiteurDocument | null> {
         try {
-            const visiteur = await VisiteurModel.findById(id).exec();
+            const visiteur = await VisiteurModel.findById(id)
+                .populate('praticiensSuivis.praticienId')
+                .populate('portefeuillePraticiens')
+                .exec();
             
-            if (!visiteur) {
-                throw new Error(`Visiteur avec l'ID ${id} introuvable`);
-            }
+            if (!visiteur) throw new Error(`Visiteur introuvable`);
             return visiteur;
         } catch (error: any) {
-            if (error.name === 'CastError') {
-                throw new Error(`ID invalide: ${id}`);
-            }
+            throw error;
+        }
+    }
+
+    /**
+     * Supprimer un visiteur (Compte utilisateur)
+     */
+    public async deleteVisiteur(id: string): Promise<IVisiteurDocument | null> {
+        try {
+            return await VisiteurModel.findByIdAndDelete(id);
+        } catch (error: any) {
             throw error;
         }
     }

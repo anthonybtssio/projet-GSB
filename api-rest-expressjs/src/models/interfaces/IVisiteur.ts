@@ -3,12 +3,13 @@
  */
 export interface IVisiteur {
   _id?: string;
-  nom: string;
-  prenom: string;
+  nom: Types.ObjectId;
+  prenom: Types.ObjectId;
   email: string;
   date_embauche?: Date;
   telephone : string; 
   matricule : string;
+  dateFin?: Date; // La fameuse date de fin
 }
 
 
@@ -16,11 +17,12 @@ export interface IVisiteur {
  * Interface pour la création d'un visiteur
  */
 export interface ICreateVisiteur {
-  nom: string;
-  prenom: string;
+  nom: Types.ObjectId;
+  prenom: Types.ObjectId;
   email: string;
   date_embauche?: Date;
   telephone : string; 
   matricule : string;
+  dateFin?: Date; // La fameuse date de fin
 
 }
