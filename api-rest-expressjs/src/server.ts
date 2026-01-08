@@ -1,10 +1,11 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit'; // <--- 1. IMPORT AJOUTÉ
 import { Database } from './config/database';
 import { VisiteurRoutes } from './routes/Visiteur';
 import { MotifRoutes } from './routes/Motif';
-import { PraticienRoutes } from './routes/Praticien'; // Attention : Vérifie que le fichier s'appelle bien Praticien.ts (singulier) ou Praticiens.ts (pluriel)
+import { PraticienRoutes } from './routes/Praticien'; 
 
 // Chargement des variables d'environnement
 dotenv.config();
@@ -31,6 +32,25 @@ class App {
    * Configure les middlewares Express
    */
   private initializeMiddlewares(): void {
+    // --- DÉBUT SÉCURITÉ (Rate Limiting) ---
+    
+    // Indispensable pour récupérer la vraie IP à travers le proxy du Cloud/CodeSpace
+    this.app.set('trust proxy', 1); 
+
+    // Configuration du limiteur : 100 requêtes max toutes les 15 minutes par IP
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000, 
+      max: 100, 
+      standardHeaders: true, 
+      legacyHeaders: false,
+      message: 'Trop de requêtes effectuées depuis cette IP, veuillez réessayer plus tard.'
+    });
+
+    // Application du limiteur à toutes les routes
+    this.app.use(limiter);
+    
+    // --- FIN SÉCURITÉ ---
+
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(cors());
@@ -62,7 +82,7 @@ class App {
 
     // --- Routes Métiers ---
 
-    // Routes visiteurs (inclut maintenant le portefeuille)
+    // Routes visiteurs
     const visiteursRoutes = new VisiteurRoutes();
     this.app.use('/api/visiteurs', visiteursRoutes.router);
 
@@ -71,7 +91,6 @@ class App {
     this.app.use('/api/motifs', motifRoutes.router);
 
     // Routes praticiens
-    // CORRECTION ICI : Ce bloc doit être DANS la méthode, pas après l'accolade fermante
     const praticienRoutes = new PraticienRoutes();
     this.app.use('/api/praticiens', praticienRoutes.router);
   }
